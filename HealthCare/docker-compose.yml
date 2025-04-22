@@ -1,0 +1,37 @@
+services:
+  mysql_db:
+    image: mysql:8.0
+    container_name: mysql_healthcare
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: HealthcareDB
+      MYSQL_USER: healthcare_user
+      MYSQL_PASSWORD: healthcare_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - healthcare_network
+
+  postgres_db:
+    image: postgres:15
+    container_name: postgres_healthcare
+    environment:
+      POSTGRES_DB: HealthcareDB
+      POSTGRES_USER: healthcare_user
+      POSTGRES_PASSWORD: healthcare_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - healthcare_network
+
+volumes:
+  mysql_data:
+  postgres_data:
+
+networks:
+  healthcare_network:
+    driver: bridge
