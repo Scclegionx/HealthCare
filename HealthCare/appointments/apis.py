@@ -29,6 +29,8 @@ def enrich_appointment_data(appointment):
     """Thêm thông tin bác sĩ và bệnh nhân vào appointment"""
     doctor_info = get_doctor_info(appointment.doctor_id)
     patient_info = get_patient_info(appointment.patient_id)
+    # print(f"Doctor Info: {doctor_info}")
+    # print(f"Patient Info: {patient_info}")
     
     return {
         'id': appointment.id,
@@ -50,13 +52,14 @@ def get_doctor_appointments(request, doctor_id):
             status='scheduled',
             start_time__date=datetime.now().date()
         )
-        
+
         # Enrich data with doctor and patient information
         enriched_appointments = [
             enrich_appointment_data(appointment) 
             for appointment in appointments
         ]
-        
+        print(f"Enriched Appointments: {enriched_appointments}")
+
         return Response(enriched_appointments)
     except Exception as e:
         return Response(
@@ -77,6 +80,8 @@ def get_pending_appointments(request, doctor_id):
             enrich_appointment_data(appointment) 
             for appointment in appointments
         ]
+
+        # print(f"Enriched Appointments: {enriched_appointments}")
         
         return Response(enriched_appointments)
     except Exception as e:
@@ -92,18 +97,49 @@ def schedule_appointment(request):
         start_time = request.data.get('start_time')
         end_time = request.data.get('end_time')
 
-        appointment = Appointment.objects.get(id=appointment_id)
+        if not all([appointment_id, start_time, end_time]):
+            return Response(
+                {"error": "Missing required fields"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            appointment = Appointment.objects.get(id=appointment_id)
+        except Appointment.DoesNotExist:
+            return Response(
+                {"error": "Appointment not found"}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Convert string dates to datetime objects
+        try:
+            # Handle both ISO format and form data format
+            if 'T' in start_time:
+                start_time = datetime.fromisoformat(start_time)
+                end_time = datetime.fromisoformat(end_time)
+            else:
+                start_time = datetime.strptime(start_time, '%Y-%m-%dT%H:%M:%S')
+                end_time = datetime.strptime(end_time, '%Y-%m-%dT%H:%M:%S')
+        except ValueError as e:
+            return Response(
+                {"error": f"Invalid date format: {str(e)}"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Update appointment
         appointment.start_time = start_time
         appointment.end_time = end_time
         appointment.status = 'scheduled'
-        appointment.save()
+        
+        try:
+            appointment.save()
+            return Response(enrich_appointment_data(appointment))
+        except Exception as e:
+            return Response(
+                {"error": f"Failed to save appointment: {str(e)}"}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
-        return Response(enrich_appointment_data(appointment))
-    except Appointment.DoesNotExist:
-        return Response(
-            {"error": "Appointment not found"}, 
-            status=status.HTTP_404_NOT_FOUND
-        )
     except Exception as e:
         return Response(
             {"error": str(e)}, 
@@ -115,6 +151,9 @@ def create_appointment_request(request):
     try:
         doctor_id = request.data.get('doctor_id')
         patient_id = request.data.get('patient_id')
+
+        print(f"Doctor ID: {doctor_id}")
+        print(f"Patient ID: {patient_id}")
 
         # Verify doctor exists
         doctor_info = get_doctor_info(doctor_id)

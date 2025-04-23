@@ -21,8 +21,8 @@
                 {% for appointment in appointments %}
                 <tr>
                     <td>{{ appointment.patient_name }}</td>
-                    <td>{{ appointment.start_time|date:"H:i d/m/Y" }}</td>
-                    <td>{{ appointment.end_time|date:"H:i d/m/Y" }}</td>
+                    <td>{{ appointment.start_time}}</td>
+                    <td>{{ appointment.end_time}}</td>
                     <td>{{ appointment.status }}</td>
                 </tr>
                 {% empty %}

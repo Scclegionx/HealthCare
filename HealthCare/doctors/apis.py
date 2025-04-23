@@ -69,4 +69,21 @@ def get_doctor_info(request, doctor_id):
         return Response(
             {"error": str(e)}, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['GET'])
+def list_doctors(request):
+    try:
+        doctors = Doctor.objects.all()
+        doctor_list = [{
+            'id': doctor.id,
+            'full_name': f"{doctor.first_name} {doctor.last_name}",
+            'email': doctor.email,
+            'specialization': doctor.specialization
+        } for doctor in doctors]
+        return Response(doctor_list)
+    except Exception as e:
+        return Response(
+            {"error": str(e)}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
         ) 

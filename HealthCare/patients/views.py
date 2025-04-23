@@ -10,6 +10,8 @@ from .serializers import PatientSerializer, PatientLoginSerializer
 from . import apis
 from django.contrib import messages
 from django.contrib.auth.backends import ModelBackend
+import requests
+from django.conf import settings
 
 # Create your views here.
 
@@ -64,3 +66,44 @@ def home(request):
 def logout_view(request):
     logout(request)
     return redirect('home')
+
+@login_required
+def list_doctors(request):
+    
+    try:
+        # Gọi API lấy danh sách bác sĩ
+        response = requests.get(f"{settings.BASE_URL}/doctors/api/doctors/")
+        doctors = response.json()
+    except Exception as e:
+        doctors = []
+        messages.error(request, "Có lỗi xảy ra khi tải danh sách bác sĩ!")
+    
+    return render(request, 'patients/list_doctor.html', {
+        'doctors': doctors
+    })
+
+@login_required
+def make_appointment(request, doctor_id):
+    
+    if request.method == 'POST':
+        try:
+            # Sửa lại URL endpoint
+            response = requests.post(
+                f"{settings.BASE_URL}/appointments/api/appointments/request/",
+                json={
+                    'doctor_id': doctor_id,
+                    'patient_id': request.user.id
+                }
+            )
+            
+            if response.status_code == 201:
+                messages.success(request, "Đã đặt lịch khám thành công! Vui lòng chờ bác sĩ xác nhận.")
+            else:
+                error_data = response.json()
+                error_message = error_data.get('error', "Có lỗi xảy ra khi đặt lịch khám!")
+                messages.error(request, error_message)
+                
+        except Exception as e:
+            messages.error(request, f"Có lỗi xảy ra khi kết nối với server: {str(e)}")
+    
+    return redirect('patients:list_doctors')

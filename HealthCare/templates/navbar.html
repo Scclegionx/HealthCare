@@ -21,6 +21,10 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'doctors:list_appointments' %}">Appointment</a>
                     </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'patients:list_doctors' %}">Make Appointment</a>
+                    </li>
                     {% endif %}
                     <li class="nav-item">
                         {% if user.is_doctor %}

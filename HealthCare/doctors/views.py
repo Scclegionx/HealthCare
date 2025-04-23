@@ -87,12 +87,12 @@ def list_appointments(request):
     if not request.user.is_doctor:
         messages.error(request, "Bạn không có quyền truy cập trang này!")
         return redirect('home')
-    
     try:
         response = requests.get(
-            f"{settings.BASE_URL}/api/appointments/doctor/{request.user.id}/"
+            f"{settings.BASE_URL}/appointments/api/appointments/doctor/{request.user.id}/"
         )
         appointments = response.json()
+        print(f"Appointments: {appointments}")
     except Exception as e:
         appointments = []
         messages.error(request, "Có lỗi xảy ra khi tải danh sách lịch hẹn!")
@@ -109,7 +109,7 @@ def schedule_appointments(request):
     
     try:
         response = requests.get(
-            f"{settings.BASE_URL}/api/appointments/pending/{request.user.id}/"
+            f"{settings.BASE_URL}/appointments/api/appointments/pending/{request.user.id}/"
         )
         pending_appointments = response.json()
     except Exception as e:
@@ -127,12 +127,29 @@ def save_schedule(request, appointment_id):
         return redirect('home')
     
     if request.method == 'POST':
-        start_time = request.POST.get('start_time')
-        end_time = request.POST.get('end_time')
+        # Get form data
+        date = request.POST.get('date')
+        start_hour = request.POST.get('start_hour')
+        start_minute = request.POST.get('start_minute')
+        end_hour = request.POST.get('end_hour')
+        end_minute = request.POST.get('end_minute')
+        
+        # Construct datetime strings
+        start_time = f"{date}T{start_hour}:{start_minute}:00"
+        end_time = f"{date}T{end_hour}:{end_minute}:00"
+        
+        # print("Form data:")
+        # print(f"Date: {date}")
+        # print(f"Start Hour: {start_hour}")
+        # print(f"Start Minute: {start_minute}")
+        # print(f"End Hour: {end_hour}")
+        # print(f"End Minute: {end_minute}")
+        # print(f"Start Time: {start_time}")
+        # print(f"End Time: {end_time}")
         
         try:
             response = requests.post(
-                f"{settings.BASE_URL}/api/appointments/schedule/",
+                f"{settings.BASE_URL}/appointments/api/appointments/schedule/",
                 json={
                     'appointment_id': appointment_id,
                     'start_time': start_time,
@@ -140,12 +157,17 @@ def save_schedule(request, appointment_id):
                 }
             )
             
+            # print(f"API Response: {response.status_code}")
+            # print(f"API Response Data: {response.text}")
+            
             if response.status_code == 200:
                 messages.success(request, "Đã sắp xếp lịch hẹn thành công!")
             else:
-                messages.error(request, "Có lỗi xảy ra khi sắp xếp lịch hẹn!")
+                error_message = response.json().get('error', 'Có lỗi xảy ra khi sắp xếp lịch hẹn!')
+                messages.error(request, error_message)
                 
         except Exception as e:
-            messages.error(request, "Có lỗi xảy ra khi kết nối với server!")
+            print(f"Error: {str(e)}")
+            messages.error(request, f"Có lỗi xảy ra khi kết nối với server: {str(e)}")
             
     return redirect('doctors:schedule_appointments')

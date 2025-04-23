@@ -16,4 +16,6 @@ class Appointment(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"Appointment {self.id} - Doctor {self.doctor_id} - Patient {self.patient_id}"
+        if self.start_time and self.end_time:
+            return f"Cuộc hẹn {self.id} - Bác sĩ {self.doctor_id} - Bệnh nhân {self.patient_id} - Từ {self.start_time.strftime('%H:%M %d/%m/%Y')} đến {self.end_time.strftime('%H:%M %d/%m/%Y')}"
+        return f"Cuộc hẹn {self.id} - Bác sĩ {self.doctor_id} - Bệnh nhân {self.patient_id}"

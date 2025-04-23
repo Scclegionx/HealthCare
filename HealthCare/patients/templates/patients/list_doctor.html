@@ -1,0 +1,31 @@
+{% extends 'main.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Danh sách bác sĩ</h2>
+    
+    <div class="row mt-4">
+        {% for doctor in doctors %}
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ doctor.full_name }}</h5>
+                    <p class="card-text">
+                        <strong>Chuyên khoa:</strong> {{ doctor.specialization }}<br>
+                        <strong>Email:</strong> {{ doctor.email }}
+                    </p>
+                    <form method="POST" action="{% url 'patients:make_appointment' doctor.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">Đặt lịch khám</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p class="text-center">Không có bác sĩ nào.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

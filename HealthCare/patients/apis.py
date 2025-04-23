@@ -39,12 +39,17 @@ def login_api(request):
 def get_patient_info(request, patient_id):
     try:
         patient = Patient.objects.get(id=patient_id)
+        # print(f"Patient ID: {patient.id}")
+        # print(f"Patient Full Name: {patient.first_name} {patient.last_name}")
+        # print(f"Patient Username: {patient.username}")
+        # print(f"Patient Email: {patient.email}")
+        # print(f"Patient Phone: {patient.phone_number}")
         return Response({
             'id': patient.id,
             'full_name': f"{patient.first_name} {patient.last_name}",
             'username': patient.username,
             'email': patient.email,
-            'phone': patient.phone  # giả sử có trường này
+            'phone_number': patient.phone_number  # giả sử có trường này
         })
     except Patient.DoesNotExist:
         return Response(

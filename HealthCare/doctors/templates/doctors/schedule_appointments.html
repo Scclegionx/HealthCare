@@ -2,20 +2,61 @@
 {% load static %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+    .time-picker-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #f8f9fa;
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
+        margin-top: 8px;
+    }
+    .time-picker-container select {
+        padding: 5px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        background: white;
+        font-size: 14px;
+        width: 70px;
+    }
+    .time-picker-container span {
+        font-size: 16px;
+        color: #495057;
+    }
+    .time-picker-label {
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+    .time-section {
+        margin-bottom: 1rem;
+    }
+    .calendar-container {
+        margin-bottom: 1.5rem;
+    }
+    .date-input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Quản lý lịch hẹn chờ xác nhận</h2>
+    <h2>Manage Pending Appointments</h2>
     
     <div class="table-responsive mt-4">
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <th>Bệnh nhân</th>
-                    <th>Ngày yêu cầu</th>
-                    <th>Thao tác</th>
+                    <th>Patient</th>
+                    <th>Request Date</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -27,39 +68,79 @@
                         <button class="btn btn-primary btn-sm" 
                                 data-bs-toggle="modal" 
                                 data-bs-target="#scheduleModal{{ appointment.id }}">
-                            Sắp xếp lịch
+                            Schedule
                         </button>
                     </td>
                 </tr>
 
-                <!-- Modal cho mỗi appointment -->
+                <!-- Modal for each appointment -->
                 <div class="modal fade" id="scheduleModal{{ appointment.id }}" tabindex="-1">
-                    <div class="modal-dialog">
+                    <div class="modal-dialog modal-lg">
                         <div class="modal-content">
                             <form method="POST" action="{% url 'doctors:save_schedule' appointment.id %}">
                                 {% csrf_token %}
                                 <div class="modal-header">
-                                    <h5 class="modal-title">Sắp xếp lịch hẹn</h5>
+                                    <h5 class="modal-title">Schedule Appointment</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <p>Bệnh nhân: {{ appointment.patient_name }}</p>
+                                    <p>Patient: {{ appointment.patient_name }}</p>
                                     
-                                    <div class="mb-3">
-                                        <label class="form-label">Thời gian bắt đầu</label>
-                                        <input type="text" class="form-control flatpickr-datetime" 
-                                               name="start_time" required>
+                                    <div class="calendar-container">
+                                        <label class="time-picker-label">Select Appointment Date</label>
+                                        <input type="date" class="date-input" id="calendar{{ appointment.id }}" 
+                                               name="date" required>
                                     </div>
                                     
-                                    <div class="mb-3">
-                                        <label class="form-label">Thời gian kết thúc</label>
-                                        <input type="text" class="form-control flatpickr-datetime" 
-                                               name="end_time" required>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="time-section">
+                                                <label class="time-picker-label">Start Time</label>
+                                                <div class="time-picker-container">
+                                                    <select id="startHour{{ appointment.id }}" name="start_hour" required>
+                                                        {% for i in ""|ljust:"24" %}
+                                                            <option value="{{ forloop.counter0|stringformat:"02d" }}">
+                                                                {{ forloop.counter0|stringformat:"02d" }}
+                                                            </option>
+                                                        {% endfor %}
+                                                    </select>
+                                                    <span>:</span>
+                                                    <select id="startMinute{{ appointment.id }}" name="start_minute" required>
+                                                        <option value="00">00</option>
+                                                        <option value="15">15</option>
+                                                        <option value="30">30</option>
+                                                        <option value="45">45</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <div class="time-section">
+                                                <label class="time-picker-label">End Time</label>
+                                                <div class="time-picker-container">
+                                                    <select id="endHour{{ appointment.id }}" name="end_hour" required>
+                                                        {% for i in ""|ljust:"24" %}
+                                                            <option value="{{ forloop.counter0|stringformat:"02d" }}">
+                                                                {{ forloop.counter0|stringformat:"02d" }}
+                                                            </option>
+                                                        {% endfor %}
+                                                    </select>
+                                                    <span>:</span>
+                                                    <select id="endMinute{{ appointment.id }}" name="end_minute" required>
+                                                        <option value="00">00</option>
+                                                        <option value="15">15</option>
+                                                        <option value="30">30</option>
+                                                        <option value="45">45</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                                    <button type="submit" class="btn btn-primary">Lưu lịch hẹn</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-primary">Save Appointment</button>
                                 </div>
                             </form>
                         </div>
@@ -67,24 +148,11 @@
                 </div>
                 {% empty %}
                 <tr>
-                    <td colspan="3" class="text-center">Không có lịch hẹn nào đang chờ xác nhận</td>
+                    <td colspan="3" class="text-center">No pending appointments</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        flatpickr(".flatpickr-datetime", {
-            enableTime: true,
-            dateFormat: "Y-m-d H:i",
-            minDate: "today"
-        });
-    });
-</script>
 {% endblock %}
