@@ -1,47 +1,80 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.http import JsonResponse
+from django.contrib import messages
+from django.contrib.auth.backends import ModelBackend
 from .models import Doctor
 from .serializers import DoctorSerializer, DoctorLoginSerializer
+from . import apis
+from django.contrib.auth.hashers import make_password
 
 # Create your views here.
 
-@api_view(['POST'])
-def register(request):
-    serializer = DoctorSerializer(data=request.data)
-    if serializer.is_valid():
-        # Sử dụng database mysql
-        user = Doctor.objects.using('mysql').create_user(
-            username=serializer.validated_data['username'],
-            email=serializer.validated_data['email'],
-            password=serializer.validated_data['password'],
-            specialization=serializer.validated_data['specialization'],
-            license_number=serializer.validated_data['license_number'],
-            years_of_experience=serializer.validated_data.get('years_of_experience', 0),
-            hospital=serializer.validated_data.get('hospital')
-        )
-        return Response({'message': 'Đăng ký thành công'}, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class DoctorBackend(ModelBackend):
+    def authenticate(self, request, username=None, password=None, **kwargs):
+        try:
+            user = Doctor.objects.get(username=username)
+            if user.check_password(password):
+                return user
+        except Doctor.DoesNotExist:
+            return None
 
-@api_view(['POST'])
-def login_view(request):
-    serializer = DoctorLoginSerializer(data=request.data)
-    if serializer.is_valid():
-        username = serializer.validated_data['username']
-        password = serializer.validated_data['password']
-        # Sử dụng database mysql để xác thực
-        user = authenticate(request, username=username, password=password)
-        if user is not None and isinstance(user, Doctor):
-            login(request, user)
-            return Response({'message': 'Đăng nhập thành công'}, status=status.HTTP_200_OK)
-        return Response({'error': 'Tên đăng nhập hoặc mật khẩu không đúng'}, status=status.HTTP_400_BAD_REQUEST)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def get_user(self, user_id):
+        try:
+            return Doctor.objects.get(pk=user_id)
+        except Doctor.DoesNotExist:
+            return None
 
-@login_required
+def login_page(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        try:
+            user = Doctor.objects.get(username=username)
+            if user.check_password(password):
+                login(request, user, backend='doctors.views.DoctorBackend')
+                # Debug
+                print(f"User authenticated: {request.user.is_authenticated}")
+                print(f"User type: {type(request.user)}")
+                return redirect('/doctors/home/')
+            else:
+                messages.error(request, 'Mật khẩu không đúng')
+        except Doctor.DoesNotExist:
+            messages.error(request, 'Tên đăng nhập không tồn tại')
+    
+    return render(request, 'doctors/login.html')
+
+def register_page(request):
+    if request.method == 'POST':
+        print("Dữ liệu POST nhận được:", request.POST)
+        response = apis.register(request)
+        print("Response từ API:", response.data)
+        if response.status_code == 201:
+            messages.success(request, 'Đăng ký thành công')
+            return redirect('doctors:login')
+        # Xử lý lỗi cụ thể
+        if 'license_number' in response.data:
+            messages.error(request, 'Số giấy phép hành nghề đã tồn tại. Vui lòng kiểm tra lại.')
+        else:
+            messages.error(request, response.data.get('error', 'Có lỗi xảy ra'))
+    return render(request, 'doctors/register.html')
+
+@login_required(login_url='/doctors/login/')
 def home(request):
+    # Debug
+    print(f"Home - User authenticated: {request.user.is_authenticated}")
+    print(f"Home - User type: {type(request.user)}")
+    
     if not isinstance(request.user, Doctor):
-        return redirect('login')
+        logout(request)
+        return redirect('/doctors/login/')
     return render(request, 'doctors/home.html', {'user': request.user})
+
+def logout_view(request):
+    logout(request)
+    return redirect('home')

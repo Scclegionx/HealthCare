@@ -10,7 +10,15 @@
                 <h3 class="text-center">Đăng nhập bác sĩ</h3>
             </div>
             <div class="card-body">
-                <form method="POST">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <form method="POST" action="{% url 'doctors:login' %}">
                     {% csrf_token %}
                     <div class="mb-3">
                         <label for="username" class="form-label">Tên đăng nhập</label>
@@ -25,7 +33,7 @@
                     </div>
                 </form>
                 <div class="text-center mt-3">
-                    <p>Chưa có tài khoản? <a href="/doctors/register">Đăng ký ngay</a></p>
+                    <p>Chưa có tài khoản? <a href="{% url 'doctors:register' %}">Đăng ký ngay</a></p>
                 </div>
             </div>
         </div>

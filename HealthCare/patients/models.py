@@ -7,6 +7,22 @@ class Patient(AbstractUser):
     phone_number = models.CharField(max_length=15, null=True, blank=True)
     address = models.TextField(null=True, blank=True)
 
+    # Thêm related_name cho groups và user_permissions
+    groups = models.ManyToManyField(
+        'auth.Group',
+        related_name='patient_set',
+        blank=True,
+        help_text='The groups this patient belongs to.',
+        verbose_name='groups',
+    )
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        related_name='patient_set',
+        blank=True,
+        help_text='Specific permissions for this patient.',
+        verbose_name='user permissions',
+    )
+
     class Meta:
         verbose_name = 'Bệnh nhân'
         verbose_name_plural = 'Bệnh nhân'
@@ -17,5 +33,5 @@ class Patient(AbstractUser):
         return self.username
 
     def save(self, *args, **kwargs):
-        # Đảm bảo lưu vào MySQL
-        super().save(using='mysql', *args, **kwargs)
+        # Không cần truyền using ở đây vì đã được xử lý trong router
+        super().save(*args, **kwargs)

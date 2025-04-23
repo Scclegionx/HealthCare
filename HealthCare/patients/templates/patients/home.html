@@ -14,6 +14,7 @@
                     <h5>Thông tin cá nhân</h5>
                     <p>Email: {{ user.email }}</p>
                     <p>Ngày đăng ký: {{ user.date_joined|date:"d/m/Y" }}</p>
+                    <a href="{% url 'patients:logout' %}" class="btn btn-danger">Đăng xuất</a>
                 </div>
             </div>
         </div>

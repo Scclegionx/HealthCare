@@ -78,14 +78,6 @@ WSGI_APPLICATION = 'HealthCare.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'HealthcareDB',
-        'USER': 'healthcare_user',
-        'PASSWORD': 'healthcare_password',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    },
-    'mysql': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'HealthcareDB',
         'USER': 'healthcare_user',
@@ -96,6 +88,14 @@ DATABASES = {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'charset': 'utf8mb4',
         }
+    },
+    'postgres': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'HealthcareDB',
+        'USER': 'healthcare_user',
+        'PASSWORD': 'healthcare_password',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -149,7 +149,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Authentication
 AUTHENTICATION_BACKENDS = [
-    'HealthCare.authentication.MultiUserModelBackend',
+    'patients.views.PatientBackend',
+    'doctors.views.DoctorBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
@@ -157,9 +158,10 @@ AUTHENTICATION_BACKENDS = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',  # Cho phép truy cập mà không cần authentication
     ],
 }
 
