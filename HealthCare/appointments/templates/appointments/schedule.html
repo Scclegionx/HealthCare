@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Lên lịch hẹn mới</h2>
+    
+    <form method="post" class="mt-4">
+        {% csrf_token %}
+        
+        <div class="mb-3">
+            <label for="patient" class="form-label">Chọn bệnh nhân</label>
+            <select name="patient" id="patient" class="form-select" required>
+                <option value="">-- Chọn bệnh nhân --</option>
+                {% for patient in patients %}
+                <option value="{{ patient.id }}">{{ patient.get_full_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="date" class="form-label">Chọn ngày</label>
+            <input type="date" name="date" id="date" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="time" class="form-label">Chọn giờ</label>
+            <input type="time" name="time" id="time" class="form-control" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Lưu lịch hẹn</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    flatpickr("#date", {
+        minDate: "today",
+        dateFormat: "Y-m-d"
+    });
+</script>
+{% endblock %}

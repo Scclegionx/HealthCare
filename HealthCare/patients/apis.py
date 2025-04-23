@@ -33,4 +33,26 @@ def login_api(request):
             login(request, user)
             return Response({'message': 'Đăng nhập thành công'}, status=status.HTTP_200_OK)
         return Response({'error': 'Tên đăng nhập hoặc mật khẩu không đúng'}, status=status.HTTP_400_BAD_REQUEST)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+def get_patient_info(request, patient_id):
+    try:
+        patient = Patient.objects.get(id=patient_id)
+        return Response({
+            'id': patient.id,
+            'full_name': f"{patient.first_name} {patient.last_name}",
+            'username': patient.username,
+            'email': patient.email,
+            'phone': patient.phone  # giả sử có trường này
+        })
+    except Patient.DoesNotExist:
+        return Response(
+            {"error": "Patient not found"}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {"error": str(e)}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        ) 

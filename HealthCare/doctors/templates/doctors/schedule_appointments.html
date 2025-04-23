@@ -1,0 +1,90 @@
+{% extends 'main.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Quản lý lịch hẹn chờ xác nhận</h2>
+    
+    <div class="table-responsive mt-4">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Bệnh nhân</th>
+                    <th>Ngày yêu cầu</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appointment in pending_appointments %}
+                <tr>
+                    <td>{{ appointment.patient_name }}</td>
+                    <td>{{ appointment.created_at|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#scheduleModal{{ appointment.id }}">
+                            Sắp xếp lịch
+                        </button>
+                    </td>
+                </tr>
+
+                <!-- Modal cho mỗi appointment -->
+                <div class="modal fade" id="scheduleModal{{ appointment.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form method="POST" action="{% url 'doctors:save_schedule' appointment.id %}">
+                                {% csrf_token %}
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Sắp xếp lịch hẹn</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Bệnh nhân: {{ appointment.patient_name }}</p>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Thời gian bắt đầu</label>
+                                        <input type="text" class="form-control flatpickr-datetime" 
+                                               name="start_time" required>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Thời gian kết thúc</label>
+                                        <input type="text" class="form-control flatpickr-datetime" 
+                                               name="end_time" required>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                    <button type="submit" class="btn btn-primary">Lưu lịch hẹn</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="text-center">Không có lịch hẹn nào đang chờ xác nhận</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        flatpickr(".flatpickr-datetime", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            minDate: "today"
+        });
+    });
+</script>
+{% endblock %}

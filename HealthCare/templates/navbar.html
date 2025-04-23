@@ -17,6 +17,11 @@
                             <a class="nav-link" href="{% url 'patients:home' %}">Profile</a>
                         {% endif %}
                     </li>
+                    {% if user.is_doctor %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'doctors:list_appointments' %}">Appointment</a>
+                    </li>
+                    {% endif %}
                     <li class="nav-item">
                         {% if user.is_doctor %}
                             <a class="nav-link" href="{% url 'doctors:logout' %}">Logout</a>
@@ -41,4 +46,4 @@
             </ul>
         </div>
     </div>
-</nav> 
+</nav>
