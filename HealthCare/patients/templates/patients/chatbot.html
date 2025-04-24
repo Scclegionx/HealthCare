@@ -1,0 +1,103 @@
+{% extends 'main.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Chatbot Chẩn Đoán Bệnh</h2>
+    
+    <div class="card">
+        <div class="card-body">
+            <form id="chatbotForm">
+                <div class="mb-3">
+                    <h5>Vui lòng trả lời các câu hỏi sau:</h5>
+                    {% for symptom in symptoms %}
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="symptoms" value="{{ forloop.counter0 }}" id="symptom{{ forloop.counter0 }}">
+                        <label class="form-check-label" for="symptom{{ forloop.counter0 }}">
+                            {{ symptom }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="btn btn-primary" onclick="predictDiagnosis()">Chẩn Đoán</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="result" class="mt-4" style="display: none;">
+        <div class="card">
+            <div class="card-body">
+                <h4>Kết Quả Chẩn Đoán</h4>
+                <div id="diagnosisResult"></div>
+                <div id="chartContainer" class="mt-3"></div>
+                <div id="recommendations" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+function predictDiagnosis() {
+    const symptoms = Array.from(document.querySelectorAll('input[name="symptoms"]:checked'))
+        .map(checkbox => parseInt(checkbox.value));
+    
+    fetch('http://localhost:8081/predict', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ symptoms: symptoms })
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('result').style.display = 'block';
+        
+        // Hiển thị kết quả chẩn đoán
+        const diagnosisResult = document.getElementById('diagnosisResult');
+        diagnosisResult.innerHTML = `
+            <h5>Chẩn đoán: ${data.diagnosis}</h5>
+            <p>Độ tin cậy: ${(data.probability * 100).toFixed(2)}%</p>
+        `;
+        
+        // Hiển thị biểu đồ
+        const diseases = data.diseases;
+        const probabilities = data.probabilities;
+        const uncertainties = data.uncertainties;
+        
+        const trace = {
+            x: diseases,
+            y: probabilities,
+            type: 'bar',
+            error_y: {
+                type: 'data',
+                array: uncertainties,
+                visible: true
+            }
+        };
+        
+        const layout = {
+            title: 'Xác Suất Chẩn Đoán',
+            yaxis: {
+                title: 'Xác Suất',
+                range: [0, 1]
+            }
+        };
+        
+        Plotly.newPlot('chartContainer', [trace], layout);
+        
+        // Hiển thị khuyến nghị
+        const recommendations = document.getElementById('recommendations');
+        recommendations.innerHTML = `
+            <h5>Khuyến Nghị:</h5>
+            <p><strong>Xét nghiệm:</strong> ${data.test}</p>
+            <p><strong>Thuốc:</strong> ${data.medicine}</p>
+        `;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra khi chẩn đoán. Vui lòng thử lại.');
+    });
+}
+</script>
+{% endblock %} 

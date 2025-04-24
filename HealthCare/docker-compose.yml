@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   mysql_db:
     image: mysql:8.0
@@ -27,6 +29,28 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - healthcare_network
+
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/healthcare
+      - CHATBOT_API_URL=http://chatbot:8081
+
+  chatbot:
+    build: ./AI_Chatbot
+    volumes:
+      - ./AI_Chatbot:/app
+    ports:
+      - "8081:8081"
+    environment:
+      - PYTHONPATH=/app
 
 volumes:
   mysql_data:

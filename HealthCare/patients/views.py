@@ -107,3 +107,14 @@ def make_appointment(request, doctor_id):
             messages.error(request, f"Có lỗi xảy ra khi kết nối với server: {str(e)}")
     
     return redirect('patients:list_doctors')
+
+def chatbot_view(request):
+    # Lấy danh sách triệu chứng từ API chatbot
+    try:
+        response = requests.get('http://localhost:8081/symptoms')
+        symptoms = response.json()
+    except:
+        # Fallback nếu không kết nối được với API
+        symptoms = ["Fever", "Cough", "Sneezing", "Fatigue", "Loss of Taste", "Itchy Eyes"]
+    
+    return render(request, 'patients/chatbot.html', {'symptoms': symptoms})

@@ -25,6 +25,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'patients:list_doctors' %}">Make Appointment</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'patients:chatbot' %}">
+                            <i class="fas fa-robot"></i> Chatbot Chẩn Đoán
+                        </a>
+                    </li> 
                     {% endif %}
                     <li class="nav-item">
                         {% if user.is_doctor %}
