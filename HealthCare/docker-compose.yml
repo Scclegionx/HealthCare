@@ -81,6 +81,86 @@ services:
     depends_on:
       - postgres_db
 
+  billing_service:
+    build: .
+    container_name: billing_service
+    command: python manage.py runserver 0.0.0.0:8004
+    ports:
+      - "8004:8004"
+    volumes:
+      - .:/app
+      - static_volume:/app/static
+    environment:
+      - DATABASE_URL=postgresql://healthcare_user:healthcare_password@postgres_db:5432/HealthcareDB
+    networks:
+      - healthcare_network
+    depends_on:
+      - postgres_db
+
+  insurance_service:
+    build: .
+    container_name: insurance_service
+    command: python manage.py runserver 0.0.0.0:8005
+    ports:
+      - "8005:8005"
+    volumes:
+      - .:/app
+      - static_volume:/app/static
+    environment:
+      - DATABASE_URL=postgresql://healthcare_user:healthcare_password@postgres_db:5432/HealthcareDB
+    networks:
+      - healthcare_network
+    depends_on:
+      - postgres_db
+
+  lab_service:
+    build: .
+    container_name: lab_service
+    command: python manage.py runserver 0.0.0.0:8006
+    ports:
+      - "8006:8006"
+    volumes:
+      - .:/app
+      - static_volume:/app/static
+    environment:
+      - DATABASE_URL=postgresql://healthcare_user:healthcare_password@postgres_db:5432/HealthcareDB
+    networks:
+      - healthcare_network
+    depends_on:
+      - postgres_db
+
+  notifications_service:
+    build: .
+    container_name: notifications_service
+    command: python manage.py runserver 0.0.0.0:8007
+    ports:
+      - "8007:8007"
+    volumes:
+      - .:/app
+      - static_volume:/app/static
+    environment:
+      - DATABASE_URL=postgresql://healthcare_user:healthcare_password@postgres_db:5432/HealthcareDB
+    networks:
+      - healthcare_network
+    depends_on:
+      - postgres_db
+
+  pharmacy_service:
+    build: .
+    container_name: pharmacy_service
+    command: python manage.py runserver 0.0.0.0:8008
+    ports:
+      - "8008:8008"
+    volumes:
+      - .:/app
+      - static_volume:/app/static
+    environment:
+      - DATABASE_URL=postgresql://healthcare_user:healthcare_password@postgres_db:5432/HealthcareDB
+    networks:
+      - healthcare_network
+    depends_on:
+      - postgres_db
+
   ai_chatbot_service:
     build: .
     container_name: ai_chatbot_service
