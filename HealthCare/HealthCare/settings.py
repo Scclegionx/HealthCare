@@ -84,7 +84,7 @@ DATABASES = {
         'NAME': 'HealthcareDB',
         'USER': 'healthcare_user',
         'PASSWORD': 'healthcare_password',
-        'HOST': 'localhost',
+        'HOST': 'mysql_db',  # Sử dụng tên service trong docker-compose
         'PORT': '3306',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
@@ -96,7 +96,7 @@ DATABASES = {
         'NAME': 'HealthcareDB',
         'USER': 'healthcare_user',
         'PASSWORD': 'healthcare_password',
-        'HOST': 'localhost',
+        'HOST': 'postgres_db',  # Sử dụng tên service trong docker-compose
         'PORT': '5432',
     }
 }
@@ -140,9 +140,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Thư mục để collectstatic
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'static'),  # Thư mục chứa static files source
 ]
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

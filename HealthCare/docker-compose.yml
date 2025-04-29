@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   mysql_db:
     image: mysql:8.0
@@ -15,6 +13,7 @@ services:
       - mysql_data:/var/lib/mysql
     networks:
       - healthcare_network
+    command: --default-authentication-plugin=caching_sha2_password
 
   postgres_db:
     image: postgres:15
@@ -30,31 +29,78 @@ services:
     networks:
       - healthcare_network
 
-  web:
+  doctors_service:
     build: .
+    container_name: doctors_service
     command: python manage.py runserver 0.0.0.0:8000
-    volumes:
-      - .:/app
     ports:
       - "8000:8000"
-    depends_on:
-      - db
-    environment:
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/healthcare
-      - CHATBOT_API_URL=http://chatbot:8081
-
-  chatbot:
-    build: ./AI_Chatbot
     volumes:
-      - ./AI_Chatbot:/app
-    ports:
-      - "8081:8081"
+      - .:/app
+      - static_volume:/app/static
     environment:
-      - PYTHONPATH=/app
+      - DATABASE_URL=mysql://healthcare_user:healthcare_password@mysql_db:3306/HealthcareDB
+      - MYSQL_HOST=mysql_db
+      - MYSQL_PORT=3306
+    networks:
+      - healthcare_network
+    depends_on:
+      - mysql_db
+
+  patients_service:
+    build: .
+    container_name: patients_service
+    command: python manage.py runserver 0.0.0.0:8001
+    ports:
+      - "8001:8001"
+    volumes:
+      - .:/app
+      - static_volume:/app/static
+    environment:
+      - DATABASE_URL=mysql://healthcare_user:healthcare_password@mysql_db:3306/HealthcareDB
+      - MYSQL_HOST=mysql_db
+      - MYSQL_PORT=3306
+    networks:
+      - healthcare_network
+    depends_on:
+      - mysql_db
+
+  appointments_service:
+    build: .
+    container_name: appointments_service
+    command: python manage.py runserver 0.0.0.0:8002
+    ports:
+      - "8002:8002"
+    volumes:
+      - .:/app
+      - static_volume:/app/static
+    environment:
+      - DATABASE_URL=postgresql://healthcare_user:healthcare_password@postgres_db:5432/HealthcareDB
+    networks:
+      - healthcare_network
+    depends_on:
+      - postgres_db
+
+  ai_chatbot_service:
+    build: .
+    container_name: ai_chatbot_service
+    command: python manage.py runserver 0.0.0.0:8003
+    ports:
+      - "8003:8003"
+    volumes:
+      - .:/app
+      - static_volume:/app/static
+    environment:
+      - DATABASE_URL=postgresql://healthcare_user:healthcare_password@postgres_db:5432/HealthcareDB
+    networks:
+      - healthcare_network
+    depends_on:
+      - postgres_db
 
 volumes:
   mysql_data:
   postgres_data:
+  static_volume:
 
 networks:
   healthcare_network:
